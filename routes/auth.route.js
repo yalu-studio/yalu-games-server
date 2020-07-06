@@ -26,7 +26,7 @@ authRoute.post('/login', async (req, res, next) => {
         }
         const body = {_id: user._id, email: user.email};
         const token = jwt.sign({user: body}, 'top_secret');
-        return res.json({user: user, token: token});
+        return res.json({user: user, token: token, expiresIn: 120});
       })
     } catch (error) {
       return next(error)
