@@ -1,7 +1,7 @@
 {
   "name": "game-lib-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Yalu Games Project Backend",
   "main": "server.js",
   "scripts": {
     "test": "jest --detectOpenHandles --silent",
@@ -13,13 +13,19 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
+    "bufferutil": "^4.0.1",
+    "canvas": "^2.6.1",
+    "connect-mongo": "^3.2.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.20",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "utf-8-validate": "^5.0.2"
   },
   "devDependencies": {
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
