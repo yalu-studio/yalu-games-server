@@ -33,38 +33,39 @@ const sessionStore = new MongoStore({
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    resave: false,
+    resave: true,
     saveUninitialized: true,
     store: sessionStore,
     cookie: {
-      secure: false, httpOnly: false, maxAge: 1000 * 60 // 1 min
+      secure: false, httpOnly: true, maxAge: 1000 * 60 // 1 min
     },
   })
 );
 
-const User = require("./models/user");
+// passport
 require("./auth/auth");
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+app.use((req, res, next) => {
+  console.log(req.session);
+  console.log(req.user)
+  next()
+})
+
+// routes
 const gameRoute = require("./routes/game.route");
 const userRoute = require("./routes/user.route");
 const authRoute = require("./routes/auth.route");
 
-// app.use(express.static(path.join(__dirname, "dist/gamelib")));
-
 app.use("/api", gameRoute);
 app.use("/", authRoute);
-app.use("/user", passport.authenticate("jwt", { session: false }), userRoute);
-
-// app.use((req, res, next) => {
-//   next(createError(404))
-// })
+app.use("/", passport.authenticate("jwt", { session: false }), userRoute);
 
 app.get("/", (req, res) => {
-  res.send("invalid endpoint");
+  res.json("invalid endpoint");
 });
-
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'dist/gamelib/index.html'))
-// })
 
 // Error handler
 app.use((err, req, res, next) => {

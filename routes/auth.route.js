@@ -1,41 +1,35 @@
-const express = require('express')
-const passport = require('passport')
-const jwt = require('jsonwebtoken')
+const express = require("express");
+const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
-const authRoute = express.Router()
+const authRoute = express.Router();
 
-authRoute.post('/signup', passport.authenticate('signup', {session: false}), async (req, res, next) => {
-  res.json({
-    message: 'Signup successful',
-    user: req.user
-  })
-})
+authRoute.post(
+  "/signup",
+  passport.authenticate("signup", { session: false }),
+  async (req, res, next) => {
+    res.json({
+      message: "Signup successful",
+      user: req.user,
+    });
+  }
+);
 
-authRoute.post('/login', async (req, res, next) => {
-  passport.authenticate('login', async (err, user, info) => {
-    try {
-      if (err) {
-        const error = new Error('An Error occurred: ' + err.message)
-        return next(error)
-      } else if (!user){
-        return next(info)
-      }
-      req.login(user, {session: false}, async (error) => {
-        if (error){
-          return next(error)
-        }
-        const body = {_id: user._id, email: user.email};
-        const token = jwt.sign({user: body}, 'top_secret');
-        return res.json({user: user, token: token, expiresIn: 120});
-      })
-    } catch (error) {
-      return next(error)
+authRoute.post("/login", (req, res) => {
+  passport.authenticate("login", (err, user) => {
+    if (err) {
+      return res.status(500).send();
     }
-  })(req, res, next)
-})
+    if (!user) {
+      return res.status(401).json({ msg: "Incorrect username or password." });
+    }
+    return res.status(200).json({ msg: "Login successful." });
+  })(req, res);
+});
 
-authRoute.get('/test', async (req, res) => {
-  res.json({message: 'pass!'})
-})
+authRoute.get("/logout", (req, res, next) => {
+  req.logout();
+  res.redirect("/");
+});
 
 module.exports = authRoute;
