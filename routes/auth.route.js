@@ -1,6 +1,5 @@
 const express = require("express");
 const passport = require("passport");
-const jwt = require("jsonwebtoken");
 
 const authRoute = express.Router();
 
@@ -16,14 +15,14 @@ authRoute.post(
 );
 
 authRoute.post("/login", (req, res) => {
-  passport.authenticate("login", (err, user) => {
+  passport.authenticate("login", (err, token) => {
     if (err) {
       return res.status(500).send();
     }
-    if (!user) {
-      return res.status(401).json({ msg: "Incorrect username or password." });
+    if (!token) {
+      return res.status(401).json({ success: false, msg: "Incorrect username or password." });
     }
-    return res.status(200).json({ msg: "Login successful." });
+    return res.status(200).json({ success: true, token: token.token, expiresIn: token.expires, msg: "Login successful." });
   })(req, res);
 });
 

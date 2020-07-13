@@ -2,8 +2,18 @@ const passport = require("passport");
 const localStrategy = require("passport-local").Strategy;
 const JWTstrategy = require("passport-jwt").Strategy;
 const ExtractJWT = require("passport-jwt").ExtractJwt;
+const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
+
 const User = require("../models/user");
 
+const pathToPublicKey = path.join(__dirname, "id_rsa_pub.pem");
+const pathToPrivateKey = path.join(__dirname, "id_rsa_priv.pem");
+const PUB_KEY = fs.readFileSync(pathToPublicKey, "utf8");
+const PRIV_KEY = fs.readFileSync(pathToPrivateKey, "utf8");
+
+// Local Strategy
 passport.use(
   "signup",
   new localStrategy(
@@ -66,7 +76,25 @@ passport.use(
                 { $set: { lastActiveAt: Date() } },
                 { returnOriginal: false },
                 (err, user) => {
-                  return done(null, user);
+                  if (err) {
+                    return done(err);
+                  } else {
+                    // Generate user token
+                    const payload = {
+                      sub: user._id,
+                      iat: Date.now(),
+                    };
+                    const expiresIn = "1d";
+                    const signedToken = jwt.sign(payload, PRIV_KEY, {
+                      expiresIn: expiresIn,
+                      algorithm: "RS256",
+                    });
+                    const tokenObj = {
+                      token: `Bearer ${signedToken}`,
+                      expires: expiresIn,
+                    };
+                    done(null, tokenObj)
+                  }
                 }
               );
             }
@@ -79,18 +107,27 @@ passport.use(
   )
 );
 
+// JWT Strategy
 passport.use(
   new JWTstrategy(
     {
-      secretOrKey: "top_secret",
-      jwtFromRequest: ExtractJWT.fromUrlQueryParameter("secret_token"),
+      secretOrKey: PUB_KEY,
+      jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+      algorithms: ["RS256"]
     },
-    async (token, done) => {
-      try {
-        return done(null, token.user);
-      } catch (error) {
-        done(error);
-      }
+    (token, done) => {
+      console.log(token);
+
+      User.findOne({ _id: token.sub }, (err, user) => {
+        if (err) {
+          return done(err);
+        }
+        if (user) {
+          return done(null, user);
+        } else {
+          return done(null, false);
+        }
+      });
     }
   )
 );

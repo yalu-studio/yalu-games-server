@@ -42,6 +42,9 @@ app.use(
   })
 );
 
+// Load user models
+// require('./models/user')
+
 // passport
 require("./auth/auth");
 
