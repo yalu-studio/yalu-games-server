@@ -84,7 +84,7 @@ passport.use(
                       sub: user._id,
                       iat: Date.now(),
                     };
-                    const expiresIn = "1d";
+                    const expiresIn = 10 * 60;
                     const signedToken = jwt.sign(payload, PRIV_KEY, {
                       expiresIn: expiresIn,
                       algorithm: "RS256",
@@ -93,7 +93,7 @@ passport.use(
                       token: `Bearer ${signedToken}`,
                       expires: expiresIn,
                     };
-                    done(null, tokenObj)
+                    done(null, tokenObj);
                   }
                 }
               );
@@ -113,21 +113,22 @@ passport.use(
     {
       secretOrKey: PUB_KEY,
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-      algorithms: ["RS256"]
+      algorithms: ["RS256"],
     },
     (token, done) => {
       console.log(token);
 
-      User.findOne({ _id: token.sub }, (err, user) => {
-        if (err) {
+      User.findOne({ _id: token.sub })
+        .then((user) => {
+          if (user) {
+            return done(null, user);
+          } else {
+            return done(null, false);
+          }
+        })
+        .catch((err) => {
           return done(err);
-        }
-        if (user) {
-          return done(null, user);
-        } else {
-          return done(null, false);
-        }
-      });
+        });
     }
   )
 );
